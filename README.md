@@ -1,6 +1,6 @@
 # MVTool
 
-Tool to extract the lifting and sequences index from a set of VCF files to be used by `moni-align`
+Tool to extract lifting and sequences index from a set of VCF files to be used by `moni-align`
 
 
 ### Docker ###
