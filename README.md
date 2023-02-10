@@ -27,7 +27,7 @@ singularity pull mvtool_sif docker://moliva3/mvtool:latest
 #### Build Instructions ####
 
 ```
-git clone https://github.com/marco-oliva/moni_vcf_tools.git
+git clone https://github.com/marco-oliva/mvtool.git
 cd pfp
 mkdir build && cd build
 cmake ..
