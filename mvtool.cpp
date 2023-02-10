@@ -55,6 +55,7 @@ int main(int argc, char **argv)
     app.add_option("-r,--ref", refs_file_names, "List of comma ',' separated reference files. Assuming in genome order!")->allow_extra_args(true)->configurable()->delimiter(',')->required();
     app.add_option("-w, --window-size", w, "Sliding window size.")->check(CLI::Range(3, 200))->configurable()->required();
     app.add_option("-m, --max", max_samples, "Max number of samples to analyze")->configurable();
+    app.add_option("-o,--out-prefix", out_prefix, "Output prefix")->configurable()->required();
     app.add_option("-S, --samples", samples_file_name, "File containing the list of samples to parse")->configurable();
     app.add_option("-H,--haplotype", haplotype_string, "Haplotype: [1,2,12].")->configurable();
     app.add_option("--tmp-dir", tmp_dir, "Temporary files directory.")->check(CLI::ExistingDirectory)->configurable();
