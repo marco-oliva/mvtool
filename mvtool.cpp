@@ -157,6 +157,7 @@ int main(int argc, char **argv)
     }
     ++u;
     in_lidx.close();
+    
     // Build the seqidx structure
     sdsl::sd_vector_builder builder(u, onset.size());
     for (auto idx : onset)
@@ -165,6 +166,7 @@ int main(int argc, char **argv)
     sdsl::sd_vector<> starts(builder);
     sdsl::sd_vector<>::rank_1_type rank1(&starts);
     sdsl::sd_vector<>::select_1_type select1(&starts);
+    
     // Writing the seqidx on disk
     lifting_out_stream.write((char *)&u, sizeof(u));
     lifting_out_stream.write((char *)&w, sizeof(w));
@@ -177,29 +179,23 @@ int main(int argc, char **argv)
         lifting_out_stream.write((char *)names[i].data(), names[i].size());
     }
     
-    std::size_t n_contigs = 0;
+    std::size_t n_contigs = 1;
     // Write the total number of contigs
     lifting_out_stream.write((char *)&n_contigs, sizeof(n_contigs));
     
-    // Build the empty liftings for the references
-    size_t clen = 0;
-    for(size_t i = 0; i < vcf.get_reference().size() + w; ++i)
-    {
-        const size_t len = lengths[i];
-        
-        sdsl::bit_vector ibv(len);
-        sdsl::bit_vector dbv(len);
-        sdsl::bit_vector sbv(len);
-        
-        lift::Lift lift(ibv, dbv, sbv);
-        
-        sdsl::serialize(clen, lifting_out_stream);
-        lift.serialize(lifting_out_stream);
-        
-        clen += len;
-    }
+    // Build the empty lifting for the references
+    const size_t len = vcf.get_reference().size() + w;
     
-    // merge tmp lifting
+    sdsl::bit_vector ibv(len);
+    sdsl::bit_vector dbv(len);
+    sdsl::bit_vector sbv(len);
+    
+    lift::Lift lift(ibv, dbv, sbv);
+    
+    sdsl::serialize(len, lifting_out_stream);
+    lift.serialize(lifting_out_stream);
+    
+    // Merge tmp liftings
     std::ifstream tmp_lifting_in(tmp_lifting_name);
     lifting_out_stream << tmp_lifting_in.rdbuf();
     tmp_lifting_in.close();
