@@ -101,7 +101,7 @@ int main(int argc, char **argv)
             
             // lengths
             std::size_t length = it.length() + w;
-            if (i == vcf.size() - 1) { length -= 1; } // last sample has w - 1 dollar primes and a dollar
+            if (i == vcf.size() - 1) { length += w - 1; } // last sample has w dollar primes and a dollar
             lengths_out_stream << vcf[i].id() << " " << length << std::endl;
             
             // lifting
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
             // lengths
             std::size_t length_h1 = it_h1.length() + w;
             std::size_t length_h2 = it_h2.length() + w;
-            if (i == vcf.size() - 1) { length_h2 -= 1; } // last sample has w - 1 dollar primes and a dollar
+            if (i == vcf.size() - 1) { length_h2 += w - 1; } // last sample has w dollar primes and w dollars
             
             lengths_out_stream << "H1_" << vcf[i].id() << " " << length_h1 << std::endl;
             lengths_out_stream << "H2_" << vcf[i].id() << " " << length_h2 << std::endl;
