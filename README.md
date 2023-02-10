@@ -28,7 +28,7 @@ singularity pull mvtool_sif docker://moliva3/mvtool:latest
 
 ```
 git clone https://github.com/marco-oliva/mvtool.git
-cd pfp
+cd mvtool
 mkdir build && cd build
 cmake ..
 make
@@ -52,6 +52,5 @@ Options:
   -S,--samples TEXT           File containing the list of samples to parse
   -H,--haplotype TEXT         Haplotype: [1,2,12].
   --tmp-dir TEXT:DIR          Temporary files directory.
-
 ```
  
