@@ -63,31 +63,34 @@ int main(int argc, char **argv)
 
     CLI11_PARSE(app, argc, argv);
     
-    // Clean file name vectors
+    // clean file name vectors
     vcfs_file_names.erase(std::remove_if(vcfs_file_names.begin(), vcfs_file_names.end(),
                                          [] (std::string& s) {return s.size() == 0; } ), vcfs_file_names.end());
     refs_file_names.erase(std::remove_if(refs_file_names.begin(), refs_file_names.end(),
                                          [] (std::string& s) {return s.size() == 0; } ), refs_file_names.end());
     
-    // Print out configurations
+    // print out configurations
     spdlog::info("Current Configuration:\n{}", app.config_to_str(true,true));
     
-    // Set tmp file dir
+    // set tmp file dir
     if (not tmp_dir.empty()) { vcfbwt::TempFile::setDirectory(tmp_dir); }
     
-    // Parse the VCF
+    // parse the VCF
     vcfbwt::VCF vcf(refs_file_names, vcfs_file_names, samples_file_name, max_samples);
     
-    // Generate indexes
-    std::ofstream lengths_out_stream(out_prefix + ".lengths");
-    std::ofstream lifting_out_stream(out_prefix + ".lifting");
+    // generate indexes
+    std::vector<std::string> names;
+    std::vector<std::size_t> lengths;
     
     std::string tmp_lifting_name = vcfbwt::TempFile::getName("lifting");
     std::ofstream tmp_lifting_out_stream(tmp_lifting_name);
     
-    // Reference length
+    // reference length
     std::string reference_id = "reference";
-    lengths_out_stream << reference_id << " " << vcf.get_reference().size() + w << std::endl;
+    std::size_t reference_length =  vcf.get_reference().size() + w;
+    
+    names.push_back(reference_id);
+    lengths.push_back(reference_length);
     
     for (std::size_t i = 0; i < vcf.size(); i++)
     {
@@ -102,7 +105,8 @@ int main(int argc, char **argv)
             // lengths
             std::size_t length = it.length() + w;
             if (i == vcf.size() - 1) { length += w - 1; } // last sample has w dollar primes and a dollar
-            lengths_out_stream << vcf[i].id() << " " << length << std::endl;
+            names.push_back(vcf[i].id());
+            lengths.push_back(length);
             
             // lifting
             serialize_lifting_curr_sample(vcf[i], sample_genotype, length, tmp_lifting_out_stream);
@@ -119,9 +123,12 @@ int main(int argc, char **argv)
             std::size_t length_h1 = it_h1.length() + w;
             std::size_t length_h2 = it_h2.length() + w;
             if (i == vcf.size() - 1) { length_h2 += w - 1; } // last sample has w dollar primes and w dollars
-            
-            lengths_out_stream << "H1_" << vcf[i].id() << " " << length_h1 << std::endl;
-            lengths_out_stream << "H2_" << vcf[i].id() << " " << length_h2 << std::endl;
+    
+            names.push_back("H1_" + vcf[i].id());
+            lengths.push_back(length_h1);
+    
+            names.push_back("H2_" + vcf[i].id());
+            lengths.push_back(length_h2);
     
             // lifting
             serialize_lifting_curr_sample(vcf[i], 0, length_h1, tmp_lifting_out_stream);
@@ -129,45 +136,41 @@ int main(int argc, char **argv)
         }
     }
     
+    // write out lengths
+    std::ofstream lengths_out_stream(out_prefix + ".lengths");
+    for (std::size_t i = 0; i < names.size(); i++)
+    {
+        lengths_out_stream << names[i] << " " << lengths[i] << std::endl;
+    }
+    
     vcfbwt::DiskWrites::update(lengths_out_stream.tellp());
     lengths_out_stream.close();
     
-    // Merge liftings, add reference first
+    
+    // Writing out lifitng structure
     vcfbwt::DiskWrites::update(tmp_lifting_out_stream.tellp());
     tmp_lifting_out_stream.close();
     
     std::vector<std::size_t> onset(1,0);
     std::size_t u = 0;
     
-    // Reading the lengths
-    std::vector<std::string> names;
-    std::vector<std::size_t> lengths;
-    std::string tmp_name;
-    std::size_t tmp_length;
-    std::ifstream in_lidx(out_prefix + ".lengths");
-    while (in_lidx >> tmp_name >> tmp_length )
+    for (std::size_t i = 0; i < names.size(); i++)
     {
-        if (tmp_name != "")
-        {
-            u += tmp_length;
-            names.push_back(tmp_name);
-            lengths.push_back(tmp_length);
-            onset.push_back(u);
-        }
+        u += lengths[i];
+        onset.push_back(u);
     }
     ++u;
-    in_lidx.close();
     
-    // Build the seqidx structure
+    std::ofstream lifting_out_stream(out_prefix + ".lifting");
+    
+    // seqidx structure
     sdsl::sd_vector_builder builder(u, onset.size());
-    for (auto idx : onset)
-        builder.set(idx);
+    for (auto idx : onset) { builder.set(idx); }
     
     sdsl::sd_vector<> starts(builder);
     sdsl::sd_vector<>::rank_1_type rank1(&starts);
     sdsl::sd_vector<>::select_1_type select1(&starts);
     
-    // Writing the seqidx on disk
     lifting_out_stream.write((char *)&u, sizeof(u));
     lifting_out_stream.write((char *)&w, sizeof(w));
     
@@ -179,11 +182,11 @@ int main(int argc, char **argv)
         lifting_out_stream.write((char *)names[i].data(), names[i].size());
     }
     
+    // total number of contigs
     std::size_t n_contigs = 1;
-    // Write the total number of contigs
     lifting_out_stream.write((char *)&n_contigs, sizeof(n_contigs));
     
-    // Build the empty lifting for the references
+    // empty lifting for the references
     const size_t len = vcf.get_reference().size() + w;
     
     sdsl::bit_vector ibv(len);
@@ -195,7 +198,7 @@ int main(int argc, char **argv)
     sdsl::serialize(len, lifting_out_stream);
     lift.serialize(lifting_out_stream);
     
-    // Merge tmp liftings
+    // merge tmp liftings from vcf
     std::ifstream tmp_lifting_in(tmp_lifting_name);
     lifting_out_stream << tmp_lifting_in.rdbuf();
     tmp_lifting_in.close();
