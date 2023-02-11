@@ -21,20 +21,22 @@ serialize_lifting_curr_sample(vcfbwt::Sample& sample, std::size_t sample_genotyp
     {
         const vcfbwt::Variation& variation = sample.get_variation(v);
         
-        const size_t var_genotype = sample.genotypes[v][sample_genotype];
-        // Get only variation in the current genotype
+        const size_t var_genotype = sample.genotypes[v].at(sample_genotype);
+        
+        // get only variation in the current genotype
         if( var_genotype == 0) { continue; }
         
-        int rlen = variation.alt[0].size(); // Length of the reference allele
-        int alen = variation.alt[var_genotype].size(); // Length of the alternate allele
+        int rlen = variation.alt[0].size(); // length of the reference allele
+        int alen = variation.alt[var_genotype].size(); // length of the alternate allele
         lvs_builder.set(variation.pos, variation.types[var_genotype], rlen, alen );
     }
     
-    // Build lifting data_structure
+    // build lifting data_structure
     lift::Lift lift(lvs_builder);
     size_t offset = 0;
     out_stream.write((char *)&offset, sizeof(offset));
-    // Serialize the data structure
+    
+    // serialize the data structure
     lift.serialize(out_stream);
 }
 
