@@ -107,7 +107,7 @@ int main(int argc, char **argv)
             // lengths
             std::size_t length = it.length() + w;
             if (i == vcf.size() - 1) { length += w - 1; } // last sample has w dollar primes and a dollar
-            names.push_back(vcf[i].id());
+            names.push_back(vcf[i].id() + "_H" + haplotype_string);
             lengths.push_back(length);
             
             // lifting
@@ -126,10 +126,10 @@ int main(int argc, char **argv)
             std::size_t length_h2 = it_h2.length() + w;
             if (i == vcf.size() - 1) { length_h2 += w - 1; } // last sample has w dollar primes and w dollars
     
-            names.push_back("H1_" + vcf[i].id());
+            names.push_back(vcf[i].id() + "_H1");
             lengths.push_back(length_h1);
     
-            names.push_back("H2_" + vcf[i].id());
+            names.push_back(vcf[i].id() + "_H2");
             lengths.push_back(length_h2);
     
             // lifting
