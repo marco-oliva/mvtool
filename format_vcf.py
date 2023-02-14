@@ -6,7 +6,7 @@ from pysam import VariantFile
 from Bio import SeqIO
 
 
-class VCF_file:
+class VariationsFile:
     file_path = ""
     variations_file_id = ""
 
@@ -44,7 +44,7 @@ class VCF_file:
         return variations_map
 
 
-class Contigs_file:
+class ContigsFile:
     file_path = ""
     contigs_file_id = ""
 
@@ -75,18 +75,41 @@ class Contigs_file:
 # ------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(description="", formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-v', '--variations', help='List of VCF files', nargs="+", dest="variation_files",
+    parser.add_argument('-v', '--variations', help='List of VCF files', nargs="+", dest="variations_files",
                         required=True)
     parser.add_argument('-c', '--contigs', help='List of contigs FASTA files', nargs="+", dest="contigs_files",
                         required=True)
     parser.add_argument('-o', '--out-dir', help='Output directory.', type=str, dest="output", required=True)
     args = parser.parse_args()
 
-    vcf_test = VCF_file(args.variation_files[0])
-    vcf_test.print()
+    # read all contigs files in
+    contigs_files = list()
+    for contigs_file_path in args.contigs_files:
+        contigs_files = ContigsFile(contigs_file_path)
 
-    contigs_test = Contigs_file(args.contigs_files[0])
-    contigs_test.print()
+    # split all contigs in their directories
+    contigs_maps = list()
+    for contigs_file in contigs_files:
+        contigs_maps.append(contigs_file.split("."))
+
+    # check for multiple contigs with same id
+    contigs_seen = set()
+    for contig_map in contigs_maps:
+        for contig_id in contig_map.keys():
+            if contig_id in contigs_seen:
+                print("Error: contig id already seen somewhere else. abort")
+                exit(1)
+            else:
+                contigs_seen.add(contig_id)
+
+    # read in all variations files
+    variations_files = list()
+    for variations_file_path in args.variations_files:
+        variations_files.append(VariationsFile(variations_file_path))
+
+    # split all variations in their directories
+    for contig in contigs_seen:
+
 
 
 if __name__ == '__main__':
