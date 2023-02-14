@@ -20,7 +20,7 @@ RUN wget https://github.com/samtools/htslib/releases/download/1.15.1/htslib-1.15
 COPY . /usr/src/mvtool
 WORKDIR /usr/src/mvtool/build
 RUN cmake -DENABLE_MIMALLOC=ON .. \
-    && make -j
+    && make -j mvtool
 
 # Get binaries
 WORKDIR /mvtool/bin
