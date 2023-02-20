@@ -96,7 +96,7 @@ endif()
 FetchContent_Declare(
         pfp
         GIT_REPOSITORY https://github.com/marco-oliva/pfp.git
-        GIT_TAG        master
+        GIT_TAG        test_out_contigs_info
 )
 FetchContent_GetProperties(pfp)
 if(NOT pfp_POPULATED)
