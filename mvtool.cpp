@@ -34,7 +34,7 @@ std::ofstream& out_stream)
     
         lift::Lift_builder lvs_builder(length);
         
-        while (sample.get_variation(var_it).pos < offset_ref + ref_contig_length)
+        while ((var_it < sample.variations.size()) and (sample.get_variation(var_it).pos < offset_ref + ref_contig_length))
         {
             const vcfbwt::Variation& variation = sample.get_variation(var_it);
             const size_t var_genotype = sample.genotypes[var_it].at(sample_genotype);
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
             }
             // Last contig from current sample
             names.emplace_back(vcf[i].id() + "_H" + haplotype_string + "_CONTIG_" + std::to_string(contig_id));
-            lengths.emplace_back(curr_contig_length + w); // w - 1 dollar prime and a dollar
+            lengths.emplace_back(curr_contig_length + w); // w - 1 dollar prime and a dollar sequence
             contig_lengths.emplace_back(curr_contig_length + w);
             
             // lifting
@@ -192,7 +192,7 @@ int main(int argc, char **argv)
                 }
                 // Last contig from current sample
                 names.emplace_back(vcf[i].id() + "_H" + haplotype_string + "_CONTIG_" + std::to_string(contig_id));
-                lengths.emplace_back(curr_contig_length + w); // w - 1 dollar prime and a dollar
+                lengths.emplace_back(curr_contig_length + w); // w - 1 dollar prime and a dollar sequence
                 contig_lengths.emplace_back(curr_contig_length + w);
     
                 // lifting
