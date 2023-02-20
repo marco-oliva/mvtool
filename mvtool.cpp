@@ -39,15 +39,13 @@ std::ofstream& out_stream)
             const vcfbwt::Variation& variation = sample.get_variation(var_it);
             const size_t var_genotype = sample.genotypes[var_it].at(sample_genotype);
     
+            var_it++;
+    
             // get only variation in the current genotype
             if( var_genotype == 0) { continue; }
-    
             int rlen = variation.alt[0].size(); // length of the reference allele
             int alen = variation.alt[var_genotype].size(); // length of the alternate allele
             lvs_builder.set(variation.pos, variation.types[var_genotype], rlen, alen );
-            
-            // keep iterating
-            var_it++;
         }
     
         // build lifting data_structure
