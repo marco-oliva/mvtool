@@ -124,7 +124,7 @@ int main(int argc, char **argv)
     }
     // Last contig from reference
     names.emplace_back("REF_CONTIG_" + std::to_string(contig_id));
-    lengths.emplace_back(curr_contig_length);
+    lengths.emplace_back(curr_contig_length + w);
     
     std::vector<std::size_t> reference_lengths = lengths;
     
